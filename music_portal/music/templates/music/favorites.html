@@ -1,0 +1,35 @@
+{% extends "music/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Избранное</h2>
+
+    <h3>Артисты</h3>
+    {% if favorite_artists %}
+        <ul class="list-group mb-4">
+            {% for favorite_artist in favorite_artists %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ favorite_artist.artist.name }}
+                    <a href="{% url 'artist_detail' favorite_artist.artist.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У вас пока нет любимых артистов.</p>
+    {% endif %}
+
+    <h3>Треки</h3>
+    {% if favorite_tracks %}
+        <ul class="list-group">
+            {% for favorite_track in favorite_tracks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ favorite_track.track.title }}
+                    <a href="{% url 'track_detail' favorite_track.track.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У вас пока нет любимых песен.</p>
+    {% endif %}
+</div>
+{% endblock %}

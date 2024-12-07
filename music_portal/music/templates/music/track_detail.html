@@ -1,0 +1,45 @@
+{% extends "music/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ track.title }}</h2>
+    <p><strong>Альбом:</strong> {{ track.album.title }}</p>
+    <p><strong>Артист:</strong> {{ track.album.artist.name }}</p>
+    <p><strong>Жанр:</strong> {{ track.genre }}</p>
+    <p><strong>Длительность:</strong> {{ track.duration }}</p>
+
+    {% if track.audio_file %}
+        <h4>Слушать трек:</h4>
+        <audio controls class="audio-player">
+            <source src="{{ track.audio_file.url }}" type="audio/mpeg">
+            Ваш браузер не поддерживает аудио.
+        </audio>
+    {% else %}
+        <p><em>Аудио-файл недоступен для этого трека.</em></p>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        {% if track.is_liked_by_user %}
+            <form method="POST" action="{% url 'like_track' track.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-thumbs-up"></i>
+                </button>
+            </form>
+        {% else %}
+            <form method="POST" action="{% url 'like_track' track.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fa-solid fa-thumbs-up"></i>
+                </button>
+            </form>
+        {% endif %}
+    {% else %}
+        <p><a href="{% url 'login_user' %}">Войти</a> для добавления в избранное.</p>
+    {% endif %}
+
+    <a href="{% url 'download_track' track.id %}" class="btn btn-primary mt-3">
+        <i class="fa-solid fa-download"></i> Скачать
+    </a>
+</div>
+{% endblock %}

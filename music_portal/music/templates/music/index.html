@@ -1,0 +1,34 @@
+{% extends 'music/base.html' %}
+
+{% block content %}
+<h2>Артисты</h2>
+<div class="row">
+    {% for artist in artists %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ artist.name }}</h5>
+                <p class="card-text">{{ artist.description }}</p>
+                <a href="{% url 'artist_detail' artist.id %}" class="btn btn-primary">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<h2>Треки</h2>
+<div class="row">
+    {% for track in tracks %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{{ track.title }}</h5>
+                <p class="card-text">Альбом: {{ track.album.title }}</p>
+                <p class="card-text">Длительность: {{ track.duration }}</p>
+                <a href="{% url 'track_detail' track.id %}" class="btn btn-secondary">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

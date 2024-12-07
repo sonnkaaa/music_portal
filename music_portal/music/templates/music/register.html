@@ -1,0 +1,11 @@
+{% extends 'music/base.html' %}
+
+{% block content %}
+<h2>Регистрация</h2>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Регистрация</button>
+</form>
+<p>Уже есть аккаунт? <a href="{% url 'login_user' %}">Войти</a></p>
+{% endblock %}

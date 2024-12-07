@@ -1,0 +1,30 @@
+{% extends "music/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ artist.name }}</h2>
+    <p><strong>Тип:</strong> {{ artist.type }}</p>
+    <p><strong>Жанр:</strong> {{ artist.genre }}</p>
+    <p><strong>Год:</strong> {{ artist.year_active }}</p>
+
+    {% if user.is_authenticated %}
+        {% if is_favorite %}
+            <form method="POST" action="{% url 'remove_favorite_artist' artist.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </form>
+        {% else %}
+            <form method="POST" action="{% url 'add_favorite_artist' artist.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+            </form>
+        {% endif %}
+    {% else %}
+        <p><a href="{% url 'login_user' %}">Войти</a> для добавления в избранное.</p>
+    {% endif %}
+</div>
+{% endblock %}
