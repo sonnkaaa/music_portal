@@ -2,18 +2,55 @@
 
 {% block content %}
 <h2>{{ album.title }}</h2>
-<p>Artist: {{ album.artist.name }}</p>
-<p>Release Year: {{ album.release_year }}</p>
+<p><strong>Artist:</strong> {{ album.artist.name }}</p>
+<p><strong>Release Year:</strong> {{ album.release_year }}</p>
 
 <h4>Треки</h4>
-<ul>
-    {% for track in album.tracks.all %}
-    <li>
-        <a href="{% url 'track_detail' track.id %}">{{ track.title }}</a> - {{ track.genre }} ({{ track.duration }} seconds)
-        {% if user.is_authenticated %}
-            <a href="{% url 'like_track' track.id %}" class="btn btn-sm btn-success"></a>
+<div class="list-group">
+    {% for track in tracks %}
+<div class="list-group-item d-flex align-items-center">
+    <!-- Картинка альбома -->
+    <img src="{{ album.image.url }}" alt="{{ album.title }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+
+    <!-- Информация о треке -->
+    <div class="flex-grow-1">
+        <h6 class="mb-1">{{ track.title }}</h6>
+        <p class="mb-1 text-muted">{{ album.artist.name }}</p>
+        {% if track.audio_file %}
+        <audio controls class="w-100">
+            <source src="{{ track.audio_file.url }}" type="audio/mpeg">
+            Ваш браузер не поддерживает аудио.
+        </audio>
         {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="d-flex align-items-center">
+        <!-- Кнопка добавления в избранное -->
+        {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'like_track' track.id %}" class="me-3">
+            {% csrf_token %}
+            {% if track.is_liked_by_user %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fa-solid fa-heart"></i> Удалить из избранного
+            </button>
+            {% else %}
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="fa-regular fa-heart"></i> Добавить в избранное
+            </button>
+            {% endif %}
+        </form>
+        {% endif %}
+
+        <!-- Кнопка скачивания -->
+        {% if track.audio_file %}
+        <a href="{% url 'download_track' track.id %}" class="btn btn-primary">
+            <i class="fa-solid fa-download"></i> Скачать
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+</div>
+
 {% endblock %}

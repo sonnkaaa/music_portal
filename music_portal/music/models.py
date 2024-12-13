@@ -6,6 +6,7 @@ class Artist(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=50, choices=[('Band', 'Band'), ('Solo', 'Solo')])
     description = models.TextField()
+    image = models.ImageField(upload_to='artists/', null=True, blank=True)  # Добавлено поле изображения
 
     def __str__(self):
         return self.name
@@ -15,6 +16,7 @@ class Album(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
     title = models.CharField(max_length=255)
     release_year = models.IntegerField()
+    image = models.ImageField(upload_to='albums/', null=True, blank=True)  # Добавлено поле изображения
 
     def __str__(self):
         return self.title

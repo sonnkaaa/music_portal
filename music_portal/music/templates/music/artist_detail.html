@@ -2,29 +2,56 @@
 
 {% block content %}
 <div class="container">
-    <h2>{{ artist.name }}</h2>
-    <p><strong>Тип:</strong> {{ artist.type }}</p>
-    <p><strong>Жанр:</strong> {{ artist.genre }}</p>
-    <p><strong>Год:</strong> {{ artist.year_active }}</p>
+    <div class="row">
+        <!-- Изображение артиста -->
+        <div class="col-md-4">
+            <img src="{{ artist.image.url }}" alt="{{ artist.name }}" class="img-fluid rounded mb-3">
+        </div>
 
-    {% if user.is_authenticated %}
-        {% if is_favorite %}
-            <form method="POST" action="{% url 'remove_favorite_artist' artist.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger">
-                    <i class="fa-solid fa-heart"></i>
-                </button>
-            </form>
-        {% else %}
-            <form method="POST" action="{% url 'add_favorite_artist' artist.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="fa-regular fa-heart"></i>
-                </button>
-            </form>
-        {% endif %}
-    {% else %}
-        <p><a href="{% url 'login_user' %}">Войти</a> для добавления в избранное.</p>
-    {% endif %}
+        <!-- Информация об артисте -->
+        <div class="col-md-8">
+            <h2>{{ artist.name }}</h2>
+            <p><strong>Тип:</strong> {{ artist.type }}</p>
+            <p><strong>Описание:</strong> {{ artist.description|default:"Описание отсутствует." }}</p>
+
+            <!-- Добавить/удалить из избранного -->
+            {% if user.is_authenticated %}
+                {% if is_favorite %}
+                    <form method="POST" action="{% url 'remove_favorite_artist' artist.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa-solid fa-heart"></i> Удалить из избранного
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="{% url 'add_favorite_artist' artist.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fa-regular fa-heart"></i> Добавить в избранное
+                        </button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p><a href="{% url 'login_user' %}">Войдите</a>, чтобы добавить в избранное.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Список альбомов -->
+    <h3 class="mt-4">Альбомы</h3>
+    <div class="row">
+        {% for album in artist.albums.all %}
+        <div class="col-md-3">
+            <a href="{% url 'album_detail' album.id %}" class="card mb-3 text-decoration-none text-dark">
+                <img src="{{ album.image.url }}" alt="{{ album.title }}" class="card-img-top">
+                <div class="card-body p-2">
+                    <h6 class="card-title text-center">{{ album.title }}</h6>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <p>У этого исполнителя пока нет альбомов.</p>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

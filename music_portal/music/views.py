@@ -4,12 +4,14 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
 from .models import Artist, Album, Track, FavoriteArtist, TrackLike, TrackHistory
 from django.http import Http404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 
 def index(request):
     artists = Artist.objects.all()
-    tracks = Track.objects.all()
-    return render(request, 'music/index.html', {'artists': artists, 'tracks': tracks})
+    albums = Album.objects.all()
+    return render(request, 'music/index.html', {'artists': artists, 'albums': albums})
 
 
 def artist_detail(request, artist_id):
@@ -22,7 +24,16 @@ def artist_detail(request, artist_id):
 
 def album_detail(request, album_id):
     album = get_object_or_404(Album, pk=album_id)
-    return render(request, 'music/album_detail.html', {'album': album})
+    tracks = album.tracks.all()
+
+    if request.user.is_authenticated:
+        for track in tracks:
+            # Проверяем, находится ли трек в избранном у текущего пользователя
+            track.is_liked_by_user = TrackLike.objects.filter(user=request.user, track=track).exists()
+
+    # Передаем в контекст не только альбом, но и обновлённый список треков
+    return render(request, 'music/album_detail.html', {'album': album, 'tracks': tracks})
+
 
 
 def track_detail(request, track_id):
@@ -41,13 +52,16 @@ def download_track(request, track_id):
     return response
 
 
+
 @login_required
 def like_track(request, track_id):
     track = get_object_or_404(Track, pk=track_id)
     like, created = TrackLike.objects.get_or_create(user=request.user, track=track)
     if not created:
-        like.delete()
-    return redirect('track_detail', track_id=track_id)
+        like.delete()  # Удаляем лайк, если он уже существует
+
+    # Перенаправляем обратно на страницу, откуда был отправлен запрос
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 
 @login_required
@@ -105,3 +119,12 @@ def logout_user(request):
 
 def track_history(request):
     return HttpResponse("Track history placeholder")
+
+def all_artists(request):
+    artists = Artist.objects.all()
+    return render(request, 'music/all_artists.html', {'artists': artists})
+
+def all_albums(request):
+    albums = Album.objects.all()
+    return render(request, 'music/all_albums.html', {'albums': albums})
+

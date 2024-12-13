@@ -16,4 +16,6 @@ urlpatterns = [
     path('remove_favorite_artist/<int:artist_id>/', views.remove_favorite_artist, name='remove_favorite_artist'),
     path('download_track/<int:track_id>/', views.download_track, name='download_track'),
     path('favorites/', views.favorite_artists, name='favorites'),
+    path('artists/', views.all_artists, name='all_artists'),
+    path('albums/', views.all_albums, name='all_albums'),
 ]

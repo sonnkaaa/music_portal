@@ -1,0 +1,18 @@
+{% extends 'music/base.html' %}
+
+{% block content %}
+<h2>Все альбомы</h2>
+<div class="row">
+    {% for album in albums %}
+    <div class="col-md-2">
+        <a href="{% url 'album_detail' album.id %}" class="card mb-3 text-decoration-none text-dark">
+            <img src="{{ album.image.url }}" alt="{{ album.title }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+            <div class="card-body p-2">
+                <h6 class="card-title text-center">{{ album.title }}</h6>
+                <p class="card-text text-center text-muted">{{ album.artist.name }}</p>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
