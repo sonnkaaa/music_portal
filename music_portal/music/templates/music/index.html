@@ -20,9 +20,9 @@
     {% for album in albums %}
     <div class="col-md-2">
         <a href="{% url 'album_detail' album.id %}" class="card mb-3 text-decoration-none text-dark">
-            <img src="{{ album.image.url }}" class="card-img-top" alt="{{ album.title }}">
+            <img src="{{ album.image.url }}" class="card-img-top" alt="{{ album.name }}">
             <div class="card-body p-2">
-                <h6 class="card-title text-center">{{ album.title }}</h6>
+                <h6 class="card-title text-center">{{ album.name }}</h6>
             </div>
         </a>
     </div>

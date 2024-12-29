@@ -1,0 +1,104 @@
+{% extends "music/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Личный кабинет</h2>
+
+    <!-- Кнопка для перехода на страницу настроек -->
+    <div class="mb-4">
+        <a href="{% url 'user_settings' %}" class="btn btn-outline-primary">Настройки</a>
+    </div>
+
+    <!-- Статистика -->
+    <h3>Статистика</h3>
+    {% if statistics %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Трек</th>
+                <th>Действие</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in statistics %}
+            <tr>
+                <td>{{ stat.track__title }}</td>
+                <td>{{ stat.action|capfirst }}</td>
+                <td>{{ stat.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Нет данных для статистики.</p>
+    {% endif %}
+
+    <!-- Избранное: любимые исполнители -->
+    <h3>Любимые исполнители</h3>
+    {% if favorite_artists %}
+    <div class="row">
+        {% for favorite_artist in favorite_artists %}
+        <div class="col-md-3">
+            <a href="{% url 'artist_detail' favorite_artist.artist.id %}" class="card mb-3 text-decoration-none text-dark">
+                <img src="{{ favorite_artist.artist.image.url }}" alt="{{ favorite_artist.artist.name }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                <div class="card-body p-2">
+                    <h6 class="card-title text-center">{{ favorite_artist.artist.name }}</h6>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>У вас пока нет любимых исполнителей.</p>
+    {% endif %}
+
+    <!-- Избранное: любимые альбомы -->
+    <h3>Любимые альбомы</h3>
+    {% if favorite_albums %}
+    <div class="row">
+        {% for favorite_album in favorite_albums %}
+        <div class="col-md-3">
+            <a href="{% url 'album_detail' favorite_album.album.id %}" class="card mb-3 text-decoration-none text-dark">
+                <img src="{{ favorite_album.album.image.url }}" alt="{{ favorite_album.album.name }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                <div class="card-body p-2">
+                    <h6 class="card-title text-center">{{ favorite_album.album.name }}</h6>
+                    <p class="card-text text-center text-muted">{{ favorite_album.album.artist.name }}</p>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>У вас пока нет любимых альбомов.</p>
+    {% endif %}
+
+    <!-- Любимые треки -->
+    <h3>Любимые треки</h3>
+    {% if favorite_tracks %}
+    <div class="list-group">
+        {% for favorite_track in favorite_tracks %}
+        <div class="list-group-item">
+            <div class="d-flex align-items-center">
+                <!-- Название трека и информация -->
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">{{ favorite_track.track.title }}</h6>
+                    <p class="mb-0 text-muted">{{ favorite_track.track.album.name }}</p>
+                </div>
+
+                <!-- MP3-проигрыватель -->
+                {% if favorite_track.track.audio_file %}
+                <audio controls style="width: 200px; margin-left: 20px;">
+                    <source src="{{ favorite_track.track.audio_file.url }}" type="audio/mpeg">
+                    Ваш браузер не поддерживает аудио.
+                </audio>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>У вас пока нет любимых треков.</p>
+    {% endif %}
+</div>
+{% endblock %}

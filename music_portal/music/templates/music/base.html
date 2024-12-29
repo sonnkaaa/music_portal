@@ -24,11 +24,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'all_albums' %}">Альбомы</a>
                 </li>
+
             </ul>
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'favorites' %}">Избранное</a>
+                    <a class="nav-link" href="{% url 'user_profile' %}">Личный кабинет</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout_user' %}">Выход</a>

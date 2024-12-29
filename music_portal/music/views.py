@@ -6,6 +6,16 @@ from .models import Artist, Album, Track, FavoriteArtist, TrackLike, TrackHistor
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import render, redirect
+from django.db.models import Count
+from .forms import UserUpdateForm
+from .models import FavoriteAlbum
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Album, Comment
+from .forms import CommentForm
 
 
 def index(request):
@@ -25,15 +35,30 @@ def artist_detail(request, artist_id):
 def album_detail(request, album_id):
     album = get_object_or_404(Album, pk=album_id)
     tracks = album.tracks.all()
+    comments = album.comments.all().order_by('-created_at')
 
+    is_favorite = False
     if request.user.is_authenticated:
-        for track in tracks:
-            # Проверяем, находится ли трек в избранном у текущего пользователя
-            track.is_liked_by_user = TrackLike.objects.filter(user=request.user, track=track).exists()
+        is_favorite = FavoriteAlbum.objects.filter(user=request.user, album=album).exists()
 
-    # Передаем в контекст не только альбом, но и обновлённый список треков
-    return render(request, 'music/album_detail.html', {'album': album, 'tracks': tracks})
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.album = album
+            comment.save()
+            return redirect('album_detail', album_id=album.id)
+    else:
+        form = CommentForm()
 
+    return render(request, 'music/album_detail.html', {
+        'album': album,
+        'tracks': tracks,
+        'is_favorite': is_favorite,
+        'comments': comments,
+        'form': form,
+    })
 
 
 def track_detail(request, track_id):
@@ -58,9 +83,7 @@ def like_track(request, track_id):
     track = get_object_or_404(Track, pk=track_id)
     like, created = TrackLike.objects.get_or_create(user=request.user, track=track)
     if not created:
-        like.delete()  # Удаляем лайк, если он уже существует
-
-    # Перенаправляем обратно на страницу, откуда был отправлен запрос
+        like.delete()
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 
@@ -128,3 +151,80 @@ def all_albums(request):
     albums = Album.objects.all()
     return render(request, 'music/all_albums.html', {'albums': albums})
 
+
+@login_required
+def user_profile(request):
+    user = request.user
+    favorite_artists = FavoriteArtist.objects.filter(user=user)
+    favorite_albums = FavoriteAlbum.objects.filter(user=user)
+    favorite_tracks = TrackLike.objects.filter(user=user)
+
+    statistics = TrackHistory.objects.filter(user=user).values('track__title', 'action').annotate(count=Count('id'))
+
+    return render(request, 'music/user_profile.html', {
+        'user': user,
+        'favorite_artists': favorite_artists,
+        'favorite_albums': favorite_albums,
+        'favorite_tracks': favorite_tracks,
+        'statistics': statistics,
+    })
+
+@login_required
+def user_settings(request):
+    user = request.user
+
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            profile_form = UserUpdateForm(request.POST, instance=user)
+            if profile_form.is_valid():
+                profile_form.save()
+                return redirect('user_settings')
+
+        elif 'change_password' in request.POST:
+            password_form = PasswordChangeForm(user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # Сохраняем сессию
+                return redirect('user_settings')
+    else:
+        profile_form = UserUpdateForm(instance=user)
+        password_form = PasswordChangeForm(user)
+
+    return render(request, 'music/user_settings.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
+
+
+@login_required
+def add_favorite_album(request, album_id):
+    album = get_object_or_404(Album, pk=album_id)
+    favorite, created = FavoriteAlbum.objects.get_or_create(user=request.user, album=album)
+    print(f"Добавление альбома: {album.name}, создано: {created}")
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required
+def remove_favorite_album(request, album_id):
+    album = get_object_or_404(Album, pk=album_id)
+    FavoriteAlbum.objects.filter(user=request.user, album=album).delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id, user=request.user)
+    if request.method == 'POST':
+        form = CommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            form.save()
+            return redirect('album_detail', album_id=comment.album.id)
+    else:
+        form = CommentForm(instance=comment)
+    return render(request, 'music/edit_comment.html', {'form': form, 'comment': comment})
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id, user=request.user)
+    album_id = comment.album.id
+    comment.delete()
+    return redirect('album_detail', album_id=album_id)

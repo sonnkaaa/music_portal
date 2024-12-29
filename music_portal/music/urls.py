@@ -18,4 +18,11 @@ urlpatterns = [
     path('favorites/', views.favorite_artists, name='favorites'),
     path('artists/', views.all_artists, name='all_artists'),
     path('albums/', views.all_albums, name='all_albums'),
+    path('profile/', views.user_profile, name='user_profile'),
+    path('profile/settings/', views.user_settings, name='user_settings'),
+    path('add_favorite_album/<int:album_id>/', views.add_favorite_album, name='add_favorite_album'),
+    path('remove_favorite_album/<int:album_id>/', views.remove_favorite_album, name='remove_favorite_album'),
+    path('album/<int:album_id>/', views.album_detail, name='album_detail'),
+    path('comment/edit/<int:comment_id>/', views.edit_comment, name='edit_comment'),
+    path('comment/delete/<int:comment_id>/', views.delete_comment, name='delete_comment'),
 ]

@@ -1,56 +1,106 @@
 {% extends 'music/base.html' %}
 
 {% block content %}
-<h2>{{ album.title }}</h2>
-<p><strong>Artist:</strong> {{ album.artist.name }}</p>
-<p><strong>Release Year:</strong> {{ album.release_year }}</p>
+<h2>{{ album.name }}</h2>
+<p><strong>Исполнитель:</strong> <a href="{% url 'artist_detail' album.artist.id %}">{{ album.artist.name }}</a></p>
+<p><strong>Год релиза:</strong> {{ album.release_year }}</p>
+
+<!-- Кнопка добавления/удаления альбома из избранного -->
+<div class="mb-4">
+    {% if user.is_authenticated %}
+        {% if is_favorite %}
+            <form method="POST" action="{% url 'remove_favorite_album' album.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-heart"></i> Удалить альбом из избранного
+                </button>
+            </form>
+        {% else %}
+            <form method="POST" action="{% url 'add_favorite_album' album.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fa-regular fa-heart"></i> Добавить альбом в избранное
+                </button>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
 
 <h4>Треки</h4>
 <div class="list-group">
     {% for track in tracks %}
-<div class="list-group-item d-flex align-items-center">
-    <!-- Картинка альбома -->
-    <img src="{{ album.image.url }}" alt="{{ album.title }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+    <div class="list-group-item d-flex align-items-center">
+        <!-- Картинка альбома -->
+        <img src="{{ album.image.url }}" alt="{{ album.name }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
 
-    <!-- Информация о треке -->
-    <div class="flex-grow-1">
-        <h6 class="mb-1">{{ track.title }}</h6>
-        <p class="mb-1 text-muted">{{ album.artist.name }}</p>
-        {% if track.audio_file %}
-        <audio controls class="w-100">
-            <source src="{{ track.audio_file.url }}" type="audio/mpeg">
-            Ваш браузер не поддерживает аудио.
-        </audio>
-        {% endif %}
-    </div>
-
-    <!-- Кнопки -->
-    <div class="d-flex align-items-center">
-        <!-- Кнопка добавления в избранное -->
-        {% if user.is_authenticated %}
-        <form method="POST" action="{% url 'like_track' track.id %}" class="me-3">
-            {% csrf_token %}
-            {% if track.is_liked_by_user %}
-            <button type="submit" class="btn btn-danger">
-                <i class="fa-solid fa-heart"></i> Удалить из избранного
-            </button>
-            {% else %}
-            <button type="submit" class="btn btn-outline-danger">
-                <i class="fa-regular fa-heart"></i> Добавить в избранное
-            </button>
+        <!-- Информация о треке -->
+        <div class="flex-grow-1">
+            <h6 class="mb-1">{{ track.title }}</h6>
+            <p class="mb-1 text-muted">{{ album.artist.name }}</p>
+            {% if track.audio_file %}
+            <audio controls class="w-100">
+                <source src="{{ track.audio_file.url }}" type="audio/mpeg">
+                Ваш браузер не поддерживает аудио.
+            </audio>
             {% endif %}
-        </form>
-        {% endif %}
+        </div>
 
-        <!-- Кнопка скачивания -->
-        {% if track.audio_file %}
-        <a href="{% url 'download_track' track.id %}" class="btn btn-primary">
-            <i class="fa-solid fa-download"></i> Скачать
-        </a>
-        {% endif %}
+        <!-- Кнопки -->
+        <div class="d-flex align-items-center">
+            <!-- Кнопка добавления трека в избранное -->
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'like_track' track.id %}" class="me-3">
+                {% csrf_token %}
+                {% if track.is_liked_by_user %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-heart"></i> Удалить из избранного
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fa-regular fa-heart"></i> Добавить в избранное
+                </button>
+                {% endif %}
+            </form>
+            {% endif %}
+
+            <!-- Кнопка скачивания -->
+            {% if track.audio_file %}
+            <a href="{% url 'download_track' track.id %}" class="btn btn-primary">
+                <i class="fa-solid fa-download"></i> Скачать
+            </a>
+            {% endif %}
+        </div>
     </div>
+    {% endfor %}
 </div>
+
+<h4>Комментарии</h4>
+
+<!-- Форма добавления комментария -->
+{% if user.is_authenticated %}
+<form method="POST" class="mb-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Добавить комментарий</button>
+</form>
+{% else %}
+<p><a href="{% url 'login_user' %}">Войдите</a>, чтобы оставлять комментарии.</p>
+{% endif %}
+
+<!-- Список комментариев -->
+{% for comment in comments %}
+<div class="mb-3 p-3 border rounded">
+    <p><strong>{{ comment.user.username }}</strong> ({{ comment.created_at|date:"d.m.Y H:i" }})</p>
+    <p>{{ comment.content }}</p>
+    {% if comment.user == user %}
+    <div>
+        <a href="{% url 'edit_comment' comment.id %}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+        <a href="{% url 'delete_comment' comment.id %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+    </div>
+    {% endif %}
+</div>
+{% empty %}
+<p>Пока нет комментариев. Будьте первым!</p>
 {% endfor %}
-</div>
 
 {% endblock %}

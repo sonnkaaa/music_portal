@@ -6,9 +6,9 @@
     {% for album in albums %}
     <div class="col-md-2">
         <a href="{% url 'album_detail' album.id %}" class="card mb-3 text-decoration-none text-dark">
-            <img src="{{ album.image.url }}" alt="{{ album.title }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+            <img src="{{ album.image.url }}" alt="{{ album.name }}" class="card-img-top" style="height: 150px; object-fit: cover;">
             <div class="card-body p-2">
-                <h6 class="card-title text-center">{{ album.title }}</h6>
+                <h6 class="card-title text-center">{{ album.name }}</h6>
                 <p class="card-text text-center text-muted">{{ album.artist.name }}</p>
             </div>
         </a>
