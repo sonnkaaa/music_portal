@@ -1,0 +1,9 @@
+{% extends "music/base.html" %}
+{% load static %}
+{% block content %}
+<div class="error-page">
+    <h1>Ошибка 500</h1>
+    <p>Внутренняя ошибка сервера. Пожалуйста, попробуйте позже.</p>
+    <a href="{% url 'index' %}" class="btn btn-primary">На главную</a>
+</div>
+{% endblock %}

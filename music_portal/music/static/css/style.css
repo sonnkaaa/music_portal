@@ -65,3 +65,9 @@ footer {
     margin-top: 20px;
     margin-bottom: 20px;
 }
+
+.pagination .page-link i {
+    font-size: 1.2rem;
+    color: #000; /* Черный цвет */
+}
+

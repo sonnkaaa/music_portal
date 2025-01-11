@@ -1,17 +1,23 @@
 {% extends 'music/base.html' %}
-
+{% load static %}
 {% block content %}
 <h2>Исполнители</h2>
 <div class="row">
     {% for artist in artists %}
     <div class="col-md-2">
         <a href="{% url 'artist_detail' artist.id %}" class="card mb-3 text-decoration-none text-dark">
-            <img src="{{ artist.image.url }}" class="card-img-top" alt="{{ artist.name }}">
+            {% if artist.image %}
+                <img src="{{ artist.image.url }}" class="card-img-top" alt="{{ artist.name }}">
+            {% else %}
+                <img src="{% static 'images/default-artist.png' %}" class="card-img-top" alt="Нет изображения">
+            {% endif %}
             <div class="card-body p-2">
                 <h6 class="card-title text-center">{{ artist.name }}</h6>
             </div>
         </a>
     </div>
+    {% empty %}
+    <p>Исполнители отсутствуют.</p>
     {% endfor %}
 </div>
 
@@ -20,12 +26,18 @@
     {% for album in albums %}
     <div class="col-md-2">
         <a href="{% url 'album_detail' album.id %}" class="card mb-3 text-decoration-none text-dark">
-            <img src="{{ album.image.url }}" class="card-img-top" alt="{{ album.name }}">
+            {% if album.image %}
+                <img src="{{ album.image.url }}" class="card-img-top" alt="{{ album.name }}">
+            {% else %}
+                <img src="{% static 'images/default-album.png' %}" class="card-img-top" alt="Нет изображения">
+            {% endif %}
             <div class="card-body p-2">
                 <h6 class="card-title text-center">{{ album.name }}</h6>
             </div>
         </a>
     </div>
+    {% empty %}
+    <p>Альбомы отсутствуют.</p>
     {% endfor %}
 </div>
 {% endblock %}

@@ -1,14 +1,9 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
-from .models import Artist, Album, Track, FavoriteArtist, TrackLike, TrackHistory
-from django.http import Http404
+from .models import Artist, Track, FavoriteArtist, TrackLike, TrackHistory
 from django.http import HttpResponseRedirect
-from django.urls import reverse
 from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
-from django.shortcuts import render, redirect
 from django.db.models import Count
 from .forms import UserUpdateForm
 from .models import FavoriteAlbum
@@ -16,12 +11,19 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Album, Comment
 from .forms import CommentForm
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.http import HttpResponse
 
 
 def index(request):
-    artists = Artist.objects.all()
-    albums = Album.objects.all()
-    return render(request, 'music/index.html', {'artists': artists, 'albums': albums})
+    artists = Artist.objects.order_by('-id')[:10]
+    albums = Album.objects.order_by('-id')[:10]
+    return render(request, 'music/index.html', {
+        'artists': artists,
+        'albums': albums,
+    })
 
 
 def artist_detail(request, artist_id):
@@ -123,17 +125,20 @@ def register(request):
     return render(request, 'music/register.html', {'form': form})
 
 
+
 def login_user(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
             login(request, user)
             return redirect('index')
-        return render(request, 'music/login.html', {'error': 'Invalid username or password'})
+        else:
+            messages.error(request, "Неправильно введён логин или пароль.")
+            return render(request, 'music/login.html')
     return render(request, 'music/login.html')
-
 
 def logout_user(request):
     logout(request)
@@ -153,16 +158,19 @@ def all_albums(request):
 
 
 @login_required
-def user_profile(request):
-    user = request.user
-    favorite_artists = FavoriteArtist.objects.filter(user=user)
-    favorite_albums = FavoriteAlbum.objects.filter(user=user)
-    favorite_tracks = TrackLike.objects.filter(user=user)
+@login_required
+def user_profile(request, username):
+    profile_user = get_object_or_404(User, username=username)
 
-    statistics = TrackHistory.objects.filter(user=user).values('track__title', 'action').annotate(count=Count('id'))
+    favorite_artists = FavoriteArtist.objects.filter(user=profile_user)
+    favorite_albums = FavoriteAlbum.objects.filter(user=profile_user)
+    favorite_tracks = TrackLike.objects.filter(user=profile_user)
+
+    statistics = TrackHistory.objects.filter(user=profile_user).values('track__title', 'action').annotate(
+        count=Count('id'))
 
     return render(request, 'music/user_profile.html', {
-        'user': user,
+        'profile_user': profile_user,
         'favorite_artists': favorite_artists,
         'favorite_albums': favorite_albums,
         'favorite_tracks': favorite_tracks,
@@ -184,7 +192,7 @@ def user_settings(request):
             password_form = PasswordChangeForm(user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
-                update_session_auth_hash(request, user)  # Сохраняем сессию
+                update_session_auth_hash(request, user)
                 return redirect('user_settings')
     else:
         profile_form = UserUpdateForm(instance=user)
@@ -228,3 +236,26 @@ def delete_comment(request, comment_id):
     album_id = comment.album.id
     comment.delete()
     return redirect('album_detail', album_id=album_id)
+
+
+def custom_403(request, exception=None):
+    return render(request, '403.html', status=403)
+
+def custom_404(request, exception=None):
+    return render(request, '404.html', status=404)
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
+
+
+def send_test_email(request):
+    subject = 'Тестовое письмо'
+    message = 'Это тестовое письмо из Django.'
+    from_email = 'son1@tpu.ru'
+    recipient_list = ['recipient@example.com']
+
+    try:
+        send_mail(subject, message, from_email, recipient_list)
+        return HttpResponse('Письмо успешно отправлено и сохранено в файловом бэкенде.')
+    except Exception as e:
+        return HttpResponse(f'Ошибка при отправке письма: {e}')

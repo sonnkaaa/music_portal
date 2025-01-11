@@ -1,5 +1,12 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from django.conf.urls import handler403, handler404, handler500
+
+
+handler403 = 'music.views.custom_403'
+handler404 = 'music.views.custom_404'
+handler500 = 'music.views.custom_500'
+
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -18,11 +25,13 @@ urlpatterns = [
     path('favorites/', views.favorite_artists, name='favorites'),
     path('artists/', views.all_artists, name='all_artists'),
     path('albums/', views.all_albums, name='all_albums'),
-    path('profile/', views.user_profile, name='user_profile'),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('profile/settings/', views.user_settings, name='user_settings'),
+    path('profile/<str:username>/', views.user_profile, name='user_profile'),
     path('add_favorite_album/<int:album_id>/', views.add_favorite_album, name='add_favorite_album'),
     path('remove_favorite_album/<int:album_id>/', views.remove_favorite_album, name='remove_favorite_album'),
     path('album/<int:album_id>/', views.album_detail, name='album_detail'),
     path('comment/edit/<int:comment_id>/', views.edit_comment, name='edit_comment'),
     path('comment/delete/<int:comment_id>/', views.delete_comment, name='delete_comment'),
+    path('send-email/', views.send_test_email, name='send_email'),
 ]

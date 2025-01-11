@@ -1,0 +1,9 @@
+{% extends "music/base.html" %}
+{% load static %}
+{% block content %}
+<div class="error-page">
+    <h1>Ошибка 403</h1>
+    <p>Доступ к этой странице запрещён.</p>
+    <a href="{% url 'index' %}" class="btn btn-primary">На главную</a>
+</div>
+{% endblock %}

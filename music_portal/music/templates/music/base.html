@@ -29,7 +29,7 @@
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                    <a class="nav-link" href="{% url 'user_profile' %}">Личный кабинет</a>
+                    <a class="nav-link" href="{% url 'user_profile' request.user.username %}">Личный кабинет</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout_user' %}">Выход</a>
